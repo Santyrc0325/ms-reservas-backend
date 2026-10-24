@@ -17,6 +17,7 @@ async function bootstrap() {
     .setTitle('API de Reservas Multi-tenant')
     .setDescription('Endpoints para el Micro-SaaS de agendamiento')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   
   const document = SwaggerModule.createDocument(app, config);
