@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CompaniesModule } from './companies/companies.module.js';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         synchronize: false, //FALSE PORQUE YA ESTA ESTRUCTURADA EN DBeaver
       }),
     }),
+    CompaniesModule,
   ],
   controllers: [],
   providers: [],
