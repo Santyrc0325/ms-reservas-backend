@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateEmployeeDto {
@@ -11,9 +11,4 @@ export class CreateEmployeeDto {
   @IsString()
   @IsOptional()
   phone?: string;
-
-  @ApiProperty({ example: 1, description: 'ID de la empresa (Tenant) a la que pertenece' })
-  @IsNumber({}, { message: 'El ID de la empresa debe ser numérico' })
-  @IsNotEmpty({ message: 'El ID de la empresa es obligatorio' })
-  companyId: number;
 }

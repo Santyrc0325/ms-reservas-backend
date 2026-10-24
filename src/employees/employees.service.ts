@@ -12,25 +12,15 @@ export class EmployeesService {
     private readonly employeeRepository: Repository<Employee>,
   ) {}
 
-  async create(createEmployeeDto: CreateEmployeeDto) {
+  async create(createEmployeeDto: CreateEmployeeDto, companyId: number) {
     try {
-      // Se agrupan los datos de acuerdo al CompanyId
-      const { companyId, ...employeeData } = createEmployeeDto;
-
-      //Se crea la instancia de acuerdo al company_id
       const employee = this.employeeRepository.create({
-        ...employeeData,
+        ...createEmployeeDto,
         company: { id: companyId }, 
       });
 
-      //Guardamos en MySQL
       return await this.employeeRepository.save(employee);
-
     } catch (error) {
-      // Error de MySQL cuando falla una llave foránea
-      if ((error as any).code === 'ER_NO_REFERENCED_ROW_2') {
-        throw new BadRequestException('La empresa especificada no existe en la base de datos.');
-      }
       throw new InternalServerErrorException('Error interno al registrar el empleado.');
     }
   }
