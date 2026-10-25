@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateServiceDto } from './dto/create-service.dto.js';
@@ -30,8 +30,27 @@ export class ServicesService {
       where: { company: { id: companyId } },
     });
   }
-  
-  findOne(id: number) { return `This action returns a #${id} service`; }
-  update(id: number, updateServiceDto: UpdateServiceDto) { return `This action updates a #${id} service`; }
-  remove(id: number) { return `This action removes a #${id} service`; }
+
+ async findOne(id: number, companyId: number) {
+    const service = await this.serviceRepository.findOne({
+      where: { id, company: { id: companyId } },
+    });
+    
+    if (!service) {
+      throw new NotFoundException(`El servicio #${id} no existe o no tienes permisos para acceder a él.`);
+    }
+    return service;
+  }
+
+  async update(id: number, updateServiceDto: UpdateServiceDto, companyId: number) {
+    const service = await this.findOne(id, companyId); // Reutilizamos findOne para validar existencia y propiedad
+    await this.serviceRepository.update(service.id, updateServiceDto);
+    return this.findOne(id, companyId); // Retornamos el objeto actualizado
+  }
+
+  async remove(id: number, companyId: number) {
+    const service = await this.findOne(id, companyId);
+    await this.serviceRepository.remove(service);
+    return { message: `Servicio #${id} eliminado correctamente.` };
+  }
 }

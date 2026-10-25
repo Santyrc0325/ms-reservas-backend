@@ -25,11 +25,17 @@ export class ServicesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) { return this.servicesService.findOne(+id); }
+  findOne(@Request() req: any, @Param('id') id: string) { 
+    return this.servicesService.findOne(+id, req.user.companyId); 
+  }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateServiceDto: UpdateServiceDto) { return this.servicesService.update(+id, updateServiceDto); }
+  update(@Request() req: any, @Param('id') id: string, @Body() updateServiceDto: UpdateServiceDto) { 
+    return this.servicesService.update(+id, updateServiceDto, req.user.companyId); 
+  }
 
   @Delete(':id')
-  remove(@Param('id') id: string) { return this.servicesService.remove(+id); }
+  remove(@Request() req: any, @Param('id') id: string) { 
+    return this.servicesService.remove(+id, req.user.companyId); 
+  }
 }

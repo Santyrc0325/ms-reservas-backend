@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, BadRequestException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateEmployeeDto } from './dto/create-employee.dto.js';
@@ -30,8 +30,27 @@ export class EmployeesService {
       where: { company: { id: companyId } },
     });
   }
-  
-  findOne(id: number) { return `This action returns a #${id} employee`; }
-  update(id: number, updateEmployeeDto: UpdateEmployeeDto) { return `This action updates a #${id} employee`; }
-  remove(id: number) { return `This action removes a #${id} employee`; }
+
+  async findOne(id: number, companyId: number) {
+    const employee = await this.employeeRepository.findOne({
+      where: { id, company: { id: companyId } },
+    });
+    
+    if (!employee) {
+      throw new NotFoundException(`El empleado #${id} no existe o no tienes permisos para acceder a él.`);
+    }
+    return employee;
+  }
+
+  async update(id: number, updateEmployeeDto: UpdateEmployeeDto, companyId: number) {
+    const employee = await this.findOne(id, companyId);
+    await this.employeeRepository.update(employee.id, updateEmployeeDto);
+    return this.findOne(id, companyId);
+  }
+
+  async remove(id: number, companyId: number) {
+    const employee = await this.findOne(id, companyId);
+    await this.employeeRepository.remove(employee);
+    return { message: `Empleado #${id} eliminado correctamente.` };
+  }
 }
