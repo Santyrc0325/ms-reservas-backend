@@ -4,16 +4,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CompaniesModule } from './companies/companies.module.js';
 import { EmployeesModule } from './employees/employees.module.js';
 import { AuthModule } from './auth/auth.module.js';
+import { ServicesModule } from './services/services.module.js';
 
 @Module({
   imports: [
-    // CARGAR VARIABLES DE ENTORNO DE FORMA GLOBAL
     ConfigModule.forRoot({
       isGlobal: true,
     }),
     // CONEXION A LA BD
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule, TypeOrmModule, CompaniesModule, EmployeesModule, AuthModule, ServicesModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'mysql',
@@ -23,12 +23,13 @@ import { AuthModule } from './auth/auth.module.js';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
         autoLoadEntities: true,
-        synchronize: false, //FALSE PORQUE YA ESTA ESTRUCTURADA EN DBeaver
+        synchronize: true,
       }),
     }),
     CompaniesModule,
     EmployeesModule,
     AuthModule,
+    ServicesModule,
   ],
   controllers: [],
   providers: [],

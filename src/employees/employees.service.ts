@@ -25,7 +25,12 @@ export class EmployeesService {
     }
   }
 
-  findAll() { return `This action returns all employees`; }
+  async findAll(companyId: number) {
+    return await this.employeeRepository.find({
+      where: { company: { id: companyId } },
+    });
+  }
+  
   findOne(id: number) { return `This action returns a #${id} employee`; }
   update(id: number, updateEmployeeDto: UpdateEmployeeDto) { return `This action updates a #${id} employee`; }
   remove(id: number) { return `This action removes a #${id} employee`; }

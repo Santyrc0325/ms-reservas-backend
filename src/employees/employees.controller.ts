@@ -19,8 +19,9 @@ export class EmployeesController {
   }
 
   @Get()
-  findAll() {
-    return this.employeesService.findAll();
+  findAll(@Request() req: any) {
+    const companyId = req.user.companyId;
+    return this.employeesService.findAll(companyId);
   }
 
   @Get(':id')
