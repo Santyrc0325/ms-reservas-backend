@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateAppointmentDto } from './dto/create-appointment.dto.js';
@@ -13,11 +13,29 @@ export class AppointmentsService {
   ) {}
 
   async create(createAppointmentDto: CreateAppointmentDto, companyId: number) {
+    const { customerId, employeeId, serviceId, date, time, ...appointmentData } = createAppointmentDto;
+
+    //Validar si existe un cruce de horarios para este empleado
+    const existingAppointment = await this.appointmentRepository.findOne({
+      where: {
+        date: date,
+        time: time,
+        employee: { id: employeeId },
+        company: { id: companyId },
+      },
+    });
+
+    // Se puede reagendar solo si la cita anterior en ese horario fue cancelada
+    if (existingAppointment && existingAppointment.status !== 'CANCELLED') {
+      throw new ConflictException(`El empleado ya tiene una cita reservada para la fecha ${date} a las ${time}.`);
+    }
+
     try {
-      const { customerId, employeeId, serviceId, ...appointmentData } = createAppointmentDto;
-      
+      // Si el horario esta libre se crea la nueva cita
       const newAppointment = this.appointmentRepository.create({
         ...appointmentData,
+        date,
+        time,
         company: { id: companyId },
         customer: { id: customerId },
         employee: { id: employeeId },
