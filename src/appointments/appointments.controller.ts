@@ -22,6 +22,11 @@ export class AppointmentsController {
     return this.appointmentsService.findAll(req.user.companyId);
   }
 
+  @Get('schedule/:date')
+  findByDate(@Request() req: any, @Param('date') date: string) {
+    return this.appointmentsService.findByDate(date, req.user.companyId);
+  }
+
   @Get(':id')
   findOne(@Request() req: any, @Param('id') id: string) {
     return this.appointmentsService.findOne(+id, req.user.companyId);

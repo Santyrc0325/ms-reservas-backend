@@ -69,6 +69,23 @@ export class AppointmentsService {
     });
   }
 
+  async findByDate(date: string, companyId: number) {
+    return await this.appointmentRepository.find({
+      where: { 
+        date: date, 
+        company: { id: companyId } 
+      },
+      relations: {
+        customer: true,
+        employee: true,
+        service: true,
+      },
+      order: {
+        time: 'ASC',
+      },
+    });
+  }
+
   async findOne(id: number, companyId: number) {
     const appointment = await this.appointmentRepository.findOne({
       where: { id, company: { id: companyId } },
