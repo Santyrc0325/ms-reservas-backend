@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { ServicesModule } from './services/services.module.js';
 import { CustomersModule } from './customers/customers.module.js';
 import { AppointmentsModule } from './appointments/appointments.module.js';
+import { DashboardModule } from './dashboard/dashboard.module.js';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { AppointmentsModule } from './appointments/appointments.module.js';
     }),
     // CONEXION A LA BD
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule, TypeOrmModule, CompaniesModule, EmployeesModule, AuthModule, ServicesModule],
+      imports: [ConfigModule, TypeOrmModule, CompaniesModule, EmployeesModule, AuthModule, ServicesModule, DashboardModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'mysql',
@@ -34,6 +35,7 @@ import { AppointmentsModule } from './appointments/appointments.module.js';
     ServicesModule,
     CustomersModule,
     AppointmentsModule,
+    DashboardModule,
   ],
   controllers: [],
   providers: [],
