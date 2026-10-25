@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, InternalServerErrorException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import { CreateAppointmentDto } from './dto/create-appointment.dto.js';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto.js';
 import { Appointment } from './entities/appointment.entity.js';
@@ -105,9 +105,47 @@ export class AppointmentsService {
   async update(id: number, updateAppointmentDto: UpdateAppointmentDto, companyId: number) {
     const appointment = await this.findOne(id, companyId);
     
-    const { customerId, employeeId, serviceId, ...updateData } = updateAppointmentDto;
-    const dataToUpdate: any = { ...updateData };
+    const { customerId, employeeId, serviceId, date, time, ...updateData } = updateAppointmentDto;
     
+    const targetDate = date || appointment.date;
+    const targetTime = time || appointment.time;
+    const targetEmployeeId = employeeId || appointment.employee.id;
+    const targetCustomerId = customerId || appointment.customer.id;
+
+    if (date || time || employeeId || customerId) {
+      
+      const employeeConflict = await this.appointmentRepository.findOne({
+        where: {
+          id: Not(id),
+          date: targetDate,
+          time: targetTime,
+          employee: { id: targetEmployeeId },
+          company: { id: companyId },
+        },
+      });
+
+      if (employeeConflict && employeeConflict.status !== 'CANCELLED') {
+        throw new ConflictException(`El empleado ya tiene una cita reservada para la fecha ${targetDate} a las ${targetTime}.`);
+      }
+
+      const customerConflict = await this.appointmentRepository.findOne({
+        where: {
+          id: Not(id),
+          date: targetDate,
+          time: targetTime,
+          customer: { id: targetCustomerId },
+          company: { id: companyId },
+        },
+      });
+
+      if (customerConflict && customerConflict.status !== 'CANCELLED') {
+        throw new ConflictException(`El cliente ya tiene otra cita reservada para la fecha ${targetDate} a las ${targetTime}.`);
+      }
+    }
+
+    const dataToUpdate: any = { ...updateData };
+    if (date) dataToUpdate.date = date;
+    if (time) dataToUpdate.time = time;
     if (customerId) dataToUpdate.customer = { id: customerId };
     if (employeeId) dataToUpdate.employee = { id: employeeId };
     if (serviceId) dataToUpdate.service = { id: serviceId };
