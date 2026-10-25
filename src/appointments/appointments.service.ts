@@ -15,8 +15,7 @@ export class AppointmentsService {
   async create(createAppointmentDto: CreateAppointmentDto, companyId: number) {
     const { customerId, employeeId, serviceId, date, time, ...appointmentData } = createAppointmentDto;
 
-    //Validar si existe un cruce de horarios para este empleado
-    const existingAppointment = await this.appointmentRepository.findOne({
+    const employeeConflict = await this.appointmentRepository.findOne({
       where: {
         date: date,
         time: time,
@@ -25,13 +24,24 @@ export class AppointmentsService {
       },
     });
 
-    // Se puede reagendar solo si la cita anterior en ese horario fue cancelada
-    if (existingAppointment && existingAppointment.status !== 'CANCELLED') {
+    if (employeeConflict && employeeConflict.status !== 'CANCELLED') {
       throw new ConflictException(`El empleado ya tiene una cita reservada para la fecha ${date} a las ${time}.`);
     }
 
+    const customerConflict = await this.appointmentRepository.findOne({
+      where: {
+        date: date,
+        time: time,
+        customer: { id: customerId },
+        company: { id: companyId },
+      },
+    });
+
+    if (customerConflict && customerConflict.status !== 'CANCELLED') {
+      throw new ConflictException(`El cliente ya tiene otra cita reservada para la fecha ${date} a las ${time}.`);
+    }
+
     try {
-      // Si el horario esta libre se crea la nueva cita
       const newAppointment = this.appointmentRepository.create({
         ...appointmentData,
         date,
