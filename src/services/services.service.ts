@@ -25,10 +25,24 @@ export class ServicesService {
     }
   }
 
-  async findAll(companyId: number) {
-    return await this.serviceRepository.find({
+  async findAll(companyId: number, page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.serviceRepository.findAndCount({
       where: { company: { id: companyId } },
+      take: limit,
+      skip: skip,
+      order: { id: 'DESC' },
     });
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+      },
+    };
   }
 
  async findOne(id: number, companyId: number) {
