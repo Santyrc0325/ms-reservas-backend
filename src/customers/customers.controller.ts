@@ -20,14 +20,17 @@ export class CustomersController {
   @Get()
   @ApiQuery({ name: 'page', required: false, description: 'Número de página (por defecto 1)' })
   @ApiQuery({ name: 'limit', required: false, description: 'Cantidad de registros por página (por defecto 10)' })
+  @ApiQuery({ name: 'search', required: false, description: 'Término de búsqueda (nombre o correo)' })
   findAll(
     @Request() req: any,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('search') search?: string,
   ) {
     const pageNumber = page ? parseInt(page, 10) : 1;
     const limitNumber = limit ? parseInt(limit, 10) : 10;
-    return this.customersService.findAll(req.user.companyId, pageNumber, limitNumber);
+    
+    return this.customersService.findAll(req.user.companyId, pageNumber, limitNumber, search);
   }
 
   @Get(':id')
