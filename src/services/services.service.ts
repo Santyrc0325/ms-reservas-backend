@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { CreateServiceDto } from './dto/create-service.dto.js';
 import { UpdateServiceDto } from './dto/update-service.dto.js';
 import { Service } from './entities/service.entity.js';
@@ -25,11 +25,15 @@ export class ServicesService {
     }
   }
 
-  async findAll(companyId: number, page: number = 1, limit: number = 10) {
+  async findAll(companyId: number, page: number = 1, limit: number = 10, search?: string) {
     const skip = (page - 1) * limit;
 
+    const whereCondition = search
+      ? { company: { id: companyId }, name: Like(`%${search}%`) }
+      : { company: { id: companyId } };
+
     const [data, total] = await this.serviceRepository.findAndCount({
-      where: { company: { id: companyId } },
+      where: whereCondition,
       take: limit,
       skip: skip,
       order: { id: 'DESC' },
@@ -40,7 +44,7 @@ export class ServicesService {
       meta: {
         total,
         page,
-        lastPage: Math.ceil(total / limit),
+        lastPage: Math.ceil(total / limit) || 1,
       },
     };
   }

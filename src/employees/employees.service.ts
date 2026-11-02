@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { CreateEmployeeDto } from './dto/create-employee.dto.js';
 import { UpdateEmployeeDto } from './dto/update-employee.dto.js';
 import { Employee } from './entities/employee.entity.js';
@@ -25,11 +25,18 @@ export class EmployeesService {
     }
   }
 
-  async findAll(companyId: number, page: number = 1, limit: number = 10) {
+  async findAll(companyId: number, page: number = 1, limit: number = 10, search?: string) {
     const skip = (page - 1) * limit;
 
+    const whereCondition = search
+      ? [
+          { company: { id: companyId }, name: Like(`%${search}%`) },
+          { company: { id: companyId }, email: Like(`%${search}%`) },
+        ]
+      : { company: { id: companyId } };
+
     const [data, total] = await this.employeeRepository.findAndCount({
-      where: { company: { id: companyId } },
+      where: whereCondition,
       take: limit,
       skip: skip,
       order: { id: 'DESC' },
@@ -40,7 +47,7 @@ export class EmployeesService {
       meta: {
         total,
         page,
-        lastPage: Math.ceil(total / limit),
+        lastPage: Math.ceil(total / limit) || 1,
       },
     };
   }
