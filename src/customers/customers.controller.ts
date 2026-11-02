@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { CustomersService } from './customers.service.js';
 import { CreateCustomerDto } from './dto/create-customer.dto.js';
 import { UpdateCustomerDto } from './dto/update-customer.dto.js';
@@ -18,8 +18,16 @@ export class CustomersController {
   }
 
   @Get()
-  findAll(@Request() req: any) {
-    return this.customersService.findAll(req.user.companyId);
+  @ApiQuery({ name: 'page', required: false, description: 'Número de página (por defecto 1)' })
+  @ApiQuery({ name: 'limit', required: false, description: 'Cantidad de registros por página (por defecto 10)' })
+  findAll(
+    @Request() req: any,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNumber = page ? parseInt(page, 10) : 1;
+    const limitNumber = limit ? parseInt(limit, 10) : 10;
+    return this.customersService.findAll(req.user.companyId, pageNumber, limitNumber);
   }
 
   @Get(':id')
