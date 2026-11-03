@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,6 +7,7 @@ import { CompaniesService } from '../companies/companies.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { MailService } from '../mail/mail.service.js';
 import { Company } from '../companies/entities/company.entity.js';
+import { ResetPasswordDto } from './dto/reset-password.dto.js';
 
 @Injectable()
 export class AuthService {
@@ -52,5 +53,31 @@ export class AuthService {
     await this.mailService.sendPasswordResetEmail(company.email, resetToken);
 
     return { message: 'Si el correo existe en nuestro sistema, hemos enviado un enlace de recuperación.' };
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const { token, newPassword } = resetPasswordDto;
+
+    try {
+      const payload = await this.jwtService.verifyAsync(token);
+
+      const company = await this.companyRepository.findOne({ where: { id: payload.sub } });
+
+      if (!company || company.resetPasswordToken !== token) {
+        throw new BadRequestException('Token inválido o ya utilizado');
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+      await this.companyRepository.update(company.id, {
+        password: hashedPassword,
+        resetPasswordToken: null,
+      });
+
+      return { message: 'Contraseña actualizada correctamente' };
+    } catch (error) {
+      throw new UnauthorizedException('El enlace es inválido o ha expirado');
+    }
   }
 }
