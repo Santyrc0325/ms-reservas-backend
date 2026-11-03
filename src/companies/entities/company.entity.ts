@@ -19,4 +19,7 @@ export class Company {
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
+
+  @Column({ nullable: true })
+  resetPasswordToken: string;
 }
