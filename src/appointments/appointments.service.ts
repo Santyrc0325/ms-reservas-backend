@@ -5,6 +5,7 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto.js';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto.js';
 import { Appointment } from './entities/appointment.entity.js';
 import ExcelJS from 'exceljs';
+import { Role } from '../auth/enums/role.enum.js';
 
 @Injectable()
 export class AppointmentsService {
@@ -59,15 +60,32 @@ export class AppointmentsService {
     }
   }
 
-  async findAll(companyId: number) {
-    return await this.appointmentRepository.find({
-      where: { company: { id: companyId } },
-      relations: {
-        customer: true,
-        employee: true,
-        service: true,
-      },
+  async findAll(user: any, page: number = 1, limit: number = 10) {
+    const companyId = user.role === Role.ADMIN ? user.sub : user.companyId;
+    const skip = (page - 1) * limit;
+
+    const whereCondition: any = { company: { id: companyId } };
+
+    if (user.role === Role.EMPLOYEE) {
+      whereCondition.employee = { id: user.sub };
+    }
+
+    const [data, total] = await this.appointmentRepository.findAndCount({
+      where: whereCondition,
+      take: limit,
+      skip: skip,
+      relations: { customer: true, employee: true, service: true },
+      order: { date: 'DESC', time: 'DESC' },
     });
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit) || 1,
+      },
+    };
   }
 
   async findByDate(date: string, companyId: number) {
