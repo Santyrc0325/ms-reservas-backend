@@ -8,6 +8,7 @@ import { ServicesModule } from './services/services.module.js';
 import { CustomersModule } from './customers/customers.module.js';
 import { AppointmentsModule } from './appointments/appointments.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
+import { MailModule } from './mail/mail.module.js';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { DashboardModule } from './dashboard/dashboard.module.js';
     CustomersModule,
     AppointmentsModule,
     DashboardModule,
+    MailModule,
   ],
   controllers: [],
   providers: [],
