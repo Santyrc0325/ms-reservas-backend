@@ -11,6 +11,8 @@ import { DashboardModule } from './dashboard/dashboard.module.js';
 import { MailModule } from './mail/mail.module.js';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -24,6 +26,10 @@ import { join } from 'path';
           rootPath: join(process.cwd(), 'uploads'),
           serveRoot: '/uploads',
         }),
+        ThrottlerModule.forRoot([{
+          ttl: 60000,
+          limit: 100,
+        }]),
       ],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -47,6 +53,11 @@ import { join } from 'path';
     MailModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
