@@ -3,7 +3,6 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { CompaniesService } from '../companies/companies.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { MailService } from '../mail/mail.service.js';
 import { Company } from '../companies/entities/company.entity.js';
@@ -16,14 +15,15 @@ export class AuthService {
   constructor(
     @InjectRepository(Company) private companyRepository: Repository<Company>,
     @InjectRepository(Employee) private employeeRepository: Repository<Employee>,
-    private companiesService: CompaniesService,
     private jwtService: JwtService,
     private mailService: MailService,
   ) {}
 
   async login(loginDto: LoginDto) {
-    const company = await this.companiesService.findByEmail(loginDto.email);
-    
+    const company = await this.companyRepository.findOne({ 
+          where: { email: loginDto.email } 
+        });
+        
     if (!company) {
       throw new UnauthorizedException('Credenciales inválidas');
     }

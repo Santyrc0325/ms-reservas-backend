@@ -15,24 +15,19 @@ export class CompaniesService {
 
   async create(createCompanyDto: CreateCompanyDto) {
     try {
-      //Encriptar la contraseña
       const hashedPassword = await bcrypt.hash(createCompanyDto.password, 10);
 
-      //Remplazar la contraseña plana por la encriptada
       const company = this.companyRepository.create({
         ...createCompanyDto,
         password: hashedPassword,
       });
 
-      //Guardar en MySQL
       const savedCompany = await this.companyRepository.save(company);
 
-      // Retornar el objeto omitiendo la contraseña por seguridad
       const { password, ...result } = savedCompany;
       return result;
 
     } catch (error) {
-      // Error para campos UNIQUE duplicados
       if ((error as any).code === 'ER_DUP_ENTRY') {
         throw new ConflictException('El correo o el identificador de URL (slug) ya están en uso.');
       }
@@ -48,4 +43,12 @@ export class CompaniesService {
   findOne(id: number) { return `This action returns a #${id} company`; }
   update(id: number, updateCompanyDto: UpdateCompanyDto) { return `This action updates a #${id} company`; }
   remove(id: number) { return `This action removes a #${id} company`; }
+
+  async updateLogo(companyId: number, filename: string) {
+    await this.companyRepository.update(companyId, { logo: filename });
+    return { 
+      message: 'Logo actualizado correctamente', 
+      logoUrl: `/uploads/logos/${filename}` 
+    };
+  }
 }

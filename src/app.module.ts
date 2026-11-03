@@ -9,6 +9,8 @@ import { CustomersModule } from './customers/customers.module.js';
 import { AppointmentsModule } from './appointments/appointments.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
 import { MailModule } from './mail/mail.module.js';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -17,7 +19,12 @@ import { MailModule } from './mail/mail.module.js';
     }),
     // CONEXION A LA BD
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule, TypeOrmModule, CompaniesModule, EmployeesModule, AuthModule, ServicesModule, DashboardModule],
+      imports: [ConfigModule, TypeOrmModule, CompaniesModule, EmployeesModule, AuthModule, ServicesModule, DashboardModule,
+        ServeStaticModule.forRoot({
+          rootPath: join(process.cwd(), 'uploads'),
+          serveRoot: '/uploads',
+        }),
+      ],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'mysql',

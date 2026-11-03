@@ -22,4 +22,8 @@ export class Company {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   resetPasswordToken: string | null;
+
+  @Column({ nullable: true })
+  logo?: string;
+
 }
