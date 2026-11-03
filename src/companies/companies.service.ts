@@ -1,10 +1,12 @@
-import { Injectable, ConflictException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, ConflictException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { CreateCompanyDto } from './dto/create-company.dto.js';
 import { UpdateCompanyDto } from './dto/update-company.dto.js';
 import { Company } from './entities/company.entity.js';
+import * as fs from 'fs/promises';
+import { join } from 'path';
 
 @Injectable()
 export class CompaniesService {
@@ -45,7 +47,23 @@ export class CompaniesService {
   remove(id: number) { return `This action removes a #${id} company`; }
 
   async updateLogo(companyId: number, filename: string) {
+    const company = await this.companyRepository.findOne({ where: { id: companyId } });
+
+    if (!company) {
+      throw new NotFoundException('Empresa no encontrada');
+    }
+
+    if (company.logo) {
+      const oldImagePath = join(process.cwd(), 'uploads', 'logos', company.logo);
+      try {
+        await fs.unlink(oldImagePath);
+      } catch (error) {
+        console.warn(`Aviso: No se pudo eliminar el logo anterior en ${oldImagePath}`);
+      }
+    }
+
     await this.companyRepository.update(companyId, { logo: filename });
+
     return { 
       message: 'Logo actualizado correctamente', 
       logoUrl: `/uploads/logos/${filename}` 
