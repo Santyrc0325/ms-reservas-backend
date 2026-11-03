@@ -42,7 +42,7 @@ export class AppointmentsController {
 
   @Get('export/excel')
   async exportExcel(@Request() req: any, @Res() res: Response) {
-    const buffer = await this.appointmentsService.exportExcel(req.user.companyId);
+    const buffer = await this.appointmentsService.exportExcel(req.user);
     
     res.set({
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

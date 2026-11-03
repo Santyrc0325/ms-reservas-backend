@@ -179,9 +179,16 @@ export class AppointmentsService {
     return { message: `Cita #${id} eliminada correctamente.` };
   }
 
-  async exportExcel(companyId: number) {
+  async exportExcel(user: any) {
+    const companyId = user.role === Role.ADMIN ? user.sub : user.companyId;
+    const whereCondition: any = { company: { id: companyId } };
+
+    if (user.role === Role.EMPLOYEE) {
+      whereCondition.employee = { id: user.sub };
+    }
+
     const appointments = await this.appointmentRepository.find({
-      where: { company: { id: companyId } },
+      where: whereCondition,
       relations: { customer: true, employee: true, service: true },
       order: { date: 'DESC', time: 'DESC' },
     });
