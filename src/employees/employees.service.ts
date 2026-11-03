@@ -4,6 +4,7 @@ import { Like, Repository } from 'typeorm';
 import { CreateEmployeeDto } from './dto/create-employee.dto.js';
 import { UpdateEmployeeDto } from './dto/update-employee.dto.js';
 import { Employee } from './entities/employee.entity.js';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class EmployeesService {
@@ -13,16 +14,19 @@ export class EmployeesService {
   ) {}
 
   async create(createEmployeeDto: CreateEmployeeDto, companyId: number) {
-    try {
-      const employee = this.employeeRepository.create({
-        ...createEmployeeDto,
-        company: { id: companyId }, 
-      });
+    const { password, ...restOfData } = createEmployeeDto;
+    
+    const newEmployee = this.employeeRepository.create({
+      ...restOfData,
+      company: { id: companyId },
+    });
 
-      return await this.employeeRepository.save(employee);
-    } catch (error) {
-      throw new InternalServerErrorException('Error interno al registrar el empleado.');
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      newEmployee.password = await bcrypt.hash(password, salt);
     }
+
+    return await this.employeeRepository.save(newEmployee);
   }
 
   async findAll(companyId: number, page: number = 1, limit: number = 10, search?: string) {

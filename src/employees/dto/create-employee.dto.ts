@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateEmployeeDto {
@@ -11,4 +11,10 @@ export class CreateEmployeeDto {
   @IsString()
   @IsOptional()
   phone?: string;
+
+  @ApiPropertyOptional({ example: 'Contraseña123', description: 'Contraseña para acceso al sistema', minLength: 6 })
+  @IsOptional()
+  @IsString()
+  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
+  password?: string;
 }
