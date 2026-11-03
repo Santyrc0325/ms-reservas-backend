@@ -4,6 +4,7 @@ import { Repository, Not } from 'typeorm';
 import { CreateAppointmentDto } from './dto/create-appointment.dto.js';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto.js';
 import { Appointment } from './entities/appointment.entity.js';
+import ExcelJS from 'exceljs';
 
 @Injectable()
 export class AppointmentsService {
@@ -158,5 +159,47 @@ export class AppointmentsService {
     const appointment = await this.findOne(id, companyId);
     await this.appointmentRepository.remove(appointment);
     return { message: `Cita #${id} eliminada correctamente.` };
+  }
+
+  async exportExcel(companyId: number) {
+    const appointments = await this.appointmentRepository.find({
+      where: { company: { id: companyId } },
+      relations: { customer: true, employee: true, service: true },
+      order: { date: 'DESC', time: 'DESC' },
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Citas');
+
+    worksheet.columns = [
+      { header: 'ID', key: 'id', width: 10 },
+      { header: 'Fecha', key: 'date', width: 15 },
+      { header: 'Hora', key: 'time', width: 15 },
+      { header: 'Estado', key: 'status', width: 15 },
+      { header: 'Cliente', key: 'customer', width: 30 },
+      { header: 'Empleado', key: 'employee', width: 30 },
+      { header: 'Servicio', key: 'service', width: 30 },
+    ];
+
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' },
+    };
+
+    appointments.forEach((app) => {
+      worksheet.addRow({
+        id: app.id,
+        date: app.date,
+        time: app.time,
+        status: app.status,
+        customer: app.customer ? app.customer.name : 'N/A',
+        employee: app.employee ? app.employee.name : 'N/A',
+        service: app.service ? app.service.name : 'N/A',
+      });
+    });
+
+    return await workbook.xlsx.writeBuffer();
   }
 }

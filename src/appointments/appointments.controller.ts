@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { AppointmentsService } from './appointments.service.js';
 import { CreateAppointmentDto } from './dto/create-appointment.dto.js';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
+
 
 @ApiTags('appointments')
 @ApiBearerAuth()
@@ -25,6 +27,18 @@ export class AppointmentsController {
   @Get('schedule/:date')
   findByDate(@Request() req: any, @Param('date') date: string) {
     return this.appointmentsService.findByDate(date, req.user.companyId);
+  }
+
+  @Get('export/excel')
+  async exportExcel(@Request() req: any, @Res() res: Response) {
+    const buffer = await this.appointmentsService.exportExcel(req.user.companyId);
+    
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename=reporte_citas.xlsx',
+    });
+    
+    res.send(buffer);
   }
 
   @Get(':id')
