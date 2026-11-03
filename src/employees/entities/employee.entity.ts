@@ -15,8 +15,13 @@ export class Employee {
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
-  // Tenant
+  @Column({ nullable: true })
+  password?: string;
+
   @ManyToOne(() => Company)
   @JoinColumn({ name: 'company_id' })
   company: Company;
+  email: any;
+
+  
 }

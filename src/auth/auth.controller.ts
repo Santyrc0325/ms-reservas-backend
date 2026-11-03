@@ -29,4 +29,11 @@ export class AuthController {
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetPasswordDto);
   }
+
+  @Post('login/employee')
+  @ApiOperation({ summary: 'Autenticación exclusiva para empleados' })
+  async employeeLogin(@Body() loginDto: LoginDto) {
+    return this.authService.employeeLogin(loginDto);
+  }
+  
 }

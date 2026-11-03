@@ -8,11 +8,14 @@ import { LoginDto } from './dto/login.dto.js';
 import { MailService } from '../mail/mail.service.js';
 import { Company } from '../companies/entities/company.entity.js';
 import { ResetPasswordDto } from './dto/reset-password.dto.js';
+import { Role } from './enums/role.enum.js';
+import { Employee } from '../employees/entities/employee.entity.js';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(Company) private companyRepository: Repository<Company>,
+    @InjectRepository(Employee) private employeeRepository: Repository<Employee>,
     private companiesService: CompaniesService,
     private jwtService: JwtService,
     private mailService: MailService,
@@ -31,7 +34,11 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    const payload = { sub: company.id, email: company.email };
+    const payload = { 
+      sub: company.id, 
+      email: company.email, 
+      role: Role.ADMIN
+    };
     
     return {
       access_token: this.jwtService.sign(payload),
@@ -79,5 +86,32 @@ export class AuthService {
     } catch (error) {
       throw new UnauthorizedException('El enlace es inválido o ha expirado');
     }
+  }
+
+  async employeeLogin(loginDto: LoginDto) {
+    const employee = await this.employeeRepository.findOne({
+      where: { email: loginDto.email },
+      relations: { company: true },
+    });
+
+    if (!employee || !employee.password) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    const isPasswordValid = await bcrypt.compare(loginDto.password, employee.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    const payload = {
+      sub: employee.id,
+      email: employee.email,
+      role: Role.EMPLOYEE,
+      companyId: employee.company.id,
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
   }
 }

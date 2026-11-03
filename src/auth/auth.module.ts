@@ -9,10 +9,11 @@ import { JwtStrategy } from './jwt.strategy.js';
 import { MailModule } from '../mail/mail.module.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Company } from '../companies/entities/company.entity.js';
+import { Employee } from '../employees/entities/employee.entity.js';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Company]),
+    TypeOrmModule.forFeature([Company, Employee]),
     CompaniesModule,
     PassportModule.register({ defaultStrategy: 'jwt' }), 
     JwtModule.registerAsync({
