@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  #Contenedor MySql
+  db:
+    image: mysql:8.0
+    container_name: reservas_mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${reservas_db}
+      MYSQL_ROOT_PASSWORD: ${secret}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  #Contenedor Backend
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: reservas_api
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db 
+    depends_on:
+      - db
+    volumes:
+      - uploads_data:/app/uploads
+
+volumes:
+  mysql_data:
+  uploads_data:
